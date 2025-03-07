@@ -77,6 +77,23 @@ app.put('/events/:id', async (req, res) => {
   }
 });
 
+// Delete one event
+app.delete('/events/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const event = await prisma.event.delete({
+      where: {
+        id: parseInt(id),
+      },
+    });
+
+    return res.status(200).json({});
+  } catch (error) {
+    return res.status(500).json({ error: "Boom!"});
+  }
+});
+
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
 })
