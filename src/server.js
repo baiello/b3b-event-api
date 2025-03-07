@@ -54,6 +54,29 @@ app.get('/events/:id', async (req, res) => {
   }
 });
 
+// Update one event
+app.put('/events/:id', async (req, res) => {
+  const { id } = req.params;
+  const { title, description, date } = req.body;
+
+  try {
+    const event = await prisma.event.update({
+      where: {
+        id: parseInt(id),
+      },
+      data: {
+        title: title,
+        description: description,
+        date: new Date(date),
+      },
+    });
+
+    return res.status(200).json(event);
+  } catch (error) {
+    return res.status(500).json({ error: "Boom!"});
+  }
+});
+
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
 })
