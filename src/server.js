@@ -37,6 +37,23 @@ app.get('/events', async (req, res) => {
   }
 });
 
+// Get one event details
+app.get('/events/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const event = await prisma.event.findUnique({
+      where: {
+        id: parseInt(id),
+      }
+    });
+
+    return res.status(200).json(event);
+  } catch (error) {
+    return res.status(500).json({ error: "Boom!"});
+  }
+});
+
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
 })
