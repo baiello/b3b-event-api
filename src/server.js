@@ -25,7 +25,17 @@ app.post('/events', async (req, res) => {
   } catch (error) {
     return res.status(500).json({ error: "Boom!"});
   }
-})
+});
+
+// List all events
+app.get('/events', async (req, res) => {
+  try {
+    const events = await prisma.event.findMany();
+    return res.status(200).json(events);
+  } catch (error) {
+    return res.status(500).json({ error: "Boom!"});
+  }
+});
 
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
