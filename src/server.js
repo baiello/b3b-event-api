@@ -2,9 +2,14 @@ const express = require('express');
 const { z } = require('zod');
 
 const eventsController = require('./controllers/eventsController.js');
+const usersController = require('./controllers/usersController.js');
 const { customLogMiddleware } = require('./utils/middlewares.js');
 
 const port = 3000;
+
+if (!process.env.JWT_SECRET) {
+  throw new Error('Please set JWT_SECRET variable.')
+}
 
 const app = express();
 
@@ -16,6 +21,7 @@ app.use(customLogMiddleware);
 
 // Endpoints
 app.use('/events', eventsController);
+app.use('/users', usersController);
 
 
 // Misc
