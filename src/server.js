@@ -6,7 +6,28 @@ const port = 3000;
 const app = express();
 const prisma = new PrismaClient()
 
+
+/*********************************
+ * MIDDLEWARES
+ ********************************/
+
+function customLogMiddleware(req, res, next) {
+  const requestDateTime = new Date();
+
+  res.on('finish', () => {
+    const requestTreatmentTime = new Date() - requestDateTime;
+    console.log(`[${requestDateTime.toISOString()}] ${req.method} ${req.path} - ${requestTreatmentTime}ms`);
+  });
+
+  next();
+}
+
 app.use(express.json()) // for parsing application/json
+app.use(customLogMiddleware);
+
+/*********************************
+ * ENDPOINTS
+ ********************************/
 
 // Create event endpoint
 app.post('/events', async (req, res) => {
@@ -93,6 +114,11 @@ app.delete('/events/:id', async (req, res) => {
     return res.status(500).json({ error: "Boom!"});
   }
 });
+
+
+/*********************************
+ * MISC
+ ********************************/
 
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
