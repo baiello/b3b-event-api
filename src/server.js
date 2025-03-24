@@ -1,143 +1,24 @@
-const { PrismaClient } = require('@prisma/client');
 const express = require('express');
 const { z } = require('zod');
+
+const eventsController = require('./controllers/eventsController.js');
+const { customLogMiddleware } = require('./utils/middlewares.js');
 
 const port = 3000;
 
 const app = express();
-const prisma = new PrismaClient()
 
 
-/*********************************
- * Input validation schemas
- ********************************/
-
-const Event = z.object({
-  title: z.string().min(3),
-  description: z.string().min(10),
-  date: z.string().datetime({ local: true }),
-}).required();
-
-
-/*********************************
- * MIDDLEWARES
- ********************************/
-
-function customLogMiddleware(req, res, next) {
-  const requestDateTime = new Date();
-
-  res.on('finish', () => {
-    const requestTreatmentTime = new Date() - requestDateTime;
-    console.log(`[${requestDateTime.toISOString()}] ${req.method} ${req.path} - ${requestTreatmentTime}ms`);
-  });
-
-  next();
-}
-
-function validateEventInputsMiddleware(req, res, next) {
-  Event.parse(req.body);
-  next();
-}
-
-
+// Global middlewares
 app.use(express.json()) // for parsing application/json
 app.use(customLogMiddleware);
 
-/*********************************
- * ENDPOINTS
- ********************************/
 
-// Create event endpoint
-app.post('/events', validateEventInputsMiddleware, async (req, res, next) => {
-  const { title, description, date } = req.body;
-
-  try {
-    const event = await prisma.event.create({
-      data: {
-        title: title,
-        description,
-        date: new Date(date),
-      },
-    });
-
-    return res.status(201).json(event);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// List all events
-app.get('/events', async (req, res, next) => {
-  try {
-    const events = await prisma.event.findMany();
-    return res.status(200).json(events);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Get one event details
-app.get('/events/:id', async (req, res, next) => {
-  const { id } = req.params;
-
-  try {
-    const event = await prisma.event.findUnique({
-      where: {
-        id: parseInt(id),
-      }
-    });
-
-    return res.status(200).json(event);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Update one event
-app.put('/events/:id', async (req, res, next) => {
-  const { id } = req.params;
-  const { title, description, date } = req.body;
-
-  try {
-    const event = await prisma.event.update({
-      where: {
-        id: parseInt(id),
-      },
-      data: {
-        title: title,
-        description: description,
-        date: new Date(date),
-      },
-    });
-
-    return res.status(200).json(event);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Delete one event
-app.delete('/events/:id', async (req, res, next) => {
-  const { id } = req.params;
-
-  try {
-    const event = await prisma.event.delete({
-      where: {
-        id: parseInt(id),
-      },
-    });
-
-    return res.status(200).json({});
-  } catch (error) {
-    next(error);
-  }
-});
+// Endpoints
+app.use('/events', eventsController);
 
 
-/*********************************
- * MISC
- ********************************/
-
+// Misc
 app.use((err, req, res, next) => {
   if (err instanceof z.ZodError) {
     const errors = err.errors.map(item => ({
