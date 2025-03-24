@@ -1,10 +1,22 @@
-const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const express = require('express');
+const { z } = require('zod');
 
 const port = 3000;
 
 const app = express();
 const prisma = new PrismaClient()
+
+
+/*********************************
+ * Input validation schemas
+ ********************************/
+
+const Event = z.object({
+  title: z.string().min(3),
+  description: z.string().min(10),
+  date: z.string().datetime({ local: true }),
+}).required();
 
 
 /*********************************
@@ -22,6 +34,12 @@ function customLogMiddleware(req, res, next) {
   next();
 }
 
+function validateEventInputsMiddleware(req, res, next) {
+  Event.parse(req.body);
+  next();
+}
+
+
 app.use(express.json()) // for parsing application/json
 app.use(customLogMiddleware);
 
@@ -30,7 +48,7 @@ app.use(customLogMiddleware);
  ********************************/
 
 // Create event endpoint
-app.post('/events', async (req, res) => {
+app.post('/events', validateEventInputsMiddleware, async (req, res) => {
   const { title, description, date } = req.body;
 
   try {
@@ -119,6 +137,19 @@ app.delete('/events/:id', async (req, res) => {
 /*********************************
  * MISC
  ********************************/
+
+app.use((err, req, res, next) => {
+  if (err instanceof z.ZodError) {
+    const errors = err.errors.map(item => ({
+      input: item.path[0],
+      message: item.message,
+    }));
+
+    return res.status(400).json({errors});
+  }
+
+  return res.status(500).send('Something broke!');
+});
 
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
