@@ -48,13 +48,13 @@ app.use(customLogMiddleware);
  ********************************/
 
 // Create event endpoint
-app.post('/events', validateEventInputsMiddleware, async (req, res) => {
+app.post('/events', validateEventInputsMiddleware, async (req, res, next) => {
   const { title, description, date } = req.body;
 
   try {
     const event = await prisma.event.create({
       data: {
-        title,
+        title: title,
         description,
         date: new Date(date),
       },
@@ -62,22 +62,22 @@ app.post('/events', validateEventInputsMiddleware, async (req, res) => {
 
     return res.status(201).json(event);
   } catch (error) {
-    return res.status(500).json({ error: "Boom!"});
+    next(error);
   }
 });
 
 // List all events
-app.get('/events', async (req, res) => {
+app.get('/events', async (req, res, next) => {
   try {
     const events = await prisma.event.findMany();
     return res.status(200).json(events);
   } catch (error) {
-    return res.status(500).json({ error: "Boom!"});
+    next(error);
   }
 });
 
 // Get one event details
-app.get('/events/:id', async (req, res) => {
+app.get('/events/:id', async (req, res, next) => {
   const { id } = req.params;
 
   try {
@@ -89,12 +89,12 @@ app.get('/events/:id', async (req, res) => {
 
     return res.status(200).json(event);
   } catch (error) {
-    return res.status(500).json({ error: "Boom!"});
+    next(error);
   }
 });
 
 // Update one event
-app.put('/events/:id', async (req, res) => {
+app.put('/events/:id', async (req, res, next) => {
   const { id } = req.params;
   const { title, description, date } = req.body;
 
@@ -112,12 +112,12 @@ app.put('/events/:id', async (req, res) => {
 
     return res.status(200).json(event);
   } catch (error) {
-    return res.status(500).json({ error: "Boom!"});
+    next(error);
   }
 });
 
 // Delete one event
-app.delete('/events/:id', async (req, res) => {
+app.delete('/events/:id', async (req, res, next) => {
   const { id } = req.params;
 
   try {
@@ -129,7 +129,7 @@ app.delete('/events/:id', async (req, res) => {
 
     return res.status(200).json({});
   } catch (error) {
-    return res.status(500).json({ error: "Boom!"});
+    next(error);
   }
 });
 
@@ -148,7 +148,7 @@ app.use((err, req, res, next) => {
     return res.status(400).json({errors});
   }
 
-  return res.status(500).send('Something broke!');
+  return res.status(500).send('Something broke very hard!');
 });
 
 app.listen(port, () => {
