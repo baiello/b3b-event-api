@@ -15,8 +15,8 @@ const app = express();
 
 
 // Global middlewares
-app.use(express.json()) // for parsing application/json
 app.use(customLogMiddleware);
+app.use(express.json()) // for parsing application/json
 
 
 // Endpoints
@@ -26,6 +26,10 @@ app.use('/users', usersController);
 
 // Misc
 app.use((err, req, res, next) => {
+  if (res.statusCode === 401) {
+    return res.json({ message: 'Forbidden' });
+  }
+
   if (err instanceof z.ZodError) {
     const errors = err.errors.map(item => ({
       input: item.path[0],
