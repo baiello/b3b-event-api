@@ -61,7 +61,7 @@ router.post('/login', async (req, res, next) => {
 
         !credentialsMatches && res.status(200).json(erroJson);
 
-        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
+        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: "12 hours" });
 
         return res.status(200).json({ token });
     } catch (error) {
