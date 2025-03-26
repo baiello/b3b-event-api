@@ -61,9 +61,20 @@ router.post('/login', async (req, res, next) => {
 
         !credentialsMatches && res.status(200).json(erroJson);
 
-        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: "12 hours" });
+        let authToken = jwt.sign({}, process.env.JWT_SECRET, { expiresIn: "12 hours" });
 
-        return res.status(200).json({ token });
+        if (!authToken) {
+            throw new Error();
+        }
+
+        await prisma.authToken.create({
+            data: {
+                userId: user.id,
+                token: authToken,
+            }
+        });
+
+        return res.status(200).json({ token: authToken });
     } catch (error) {
         next(error);
     }
