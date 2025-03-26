@@ -1,14 +1,14 @@
 const express = require('express');
 
 const prisma = require('../utils/db.js');
-const { authMiddleware, validateEventInputsMiddleware } = require('../utils/middlewares.js')
+const { validateEventInputsMiddleware } = require('../utils/middlewares.js')
 
 
 const router = express.Router();
 
 
 // Create event endpoint
-router.post('/', authMiddleware, validateEventInputsMiddleware, async (req, res, next) => {
+router.post('/', validateEventInputsMiddleware, async (req, res, next) => {
   const { title, description, date } = req.body;
 
   try {
@@ -54,7 +54,7 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // Update one event
-router.put('/:id', authMiddleware, async (req, res, next) => {
+router.put('/:id', async (req, res, next) => {
   const { id } = req.params;
   const { title, description, date } = req.body;
 
@@ -77,7 +77,7 @@ router.put('/:id', authMiddleware, async (req, res, next) => {
 });
 
 // Delete one event
-router.delete('/:id', authMiddleware, async (req, res, next) => {
+router.delete('/:id', async (req, res, next) => {
   const { id } = req.params;
 
   try {

@@ -80,4 +80,31 @@ router.post('/login', async (req, res, next) => {
     }
 });
 
+router.post('/:userid/profile/:profileid', async (req, res, next) => {
+    try {
+        const { userid, profileid } = req.params;
+
+        await prisma.profilesOnUsers.create({
+            data: {
+                userId: parseInt(userid),
+                profileId: parseInt(profileid),
+            }
+        });
+
+        const userWithProfile = await prisma.user.findUnique({
+            where: { id: parseInt(userid) },
+            include: {
+                profiles: {
+                    include: { profiles: true },
+                },
+            },
+        });
+
+        return res.status(201).json(userWithProfile);
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+});
+
 module.exports = router;

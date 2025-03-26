@@ -51,7 +51,14 @@ async function authMiddleware(req, res, next) {
     });
 
     // Record the user id in request for future use
-    req.user = authToken.userId;
+    const user = await prisma.user.findUnique({
+      where: {
+        id: authToken.userId,
+      },
+      include: { profiles: true }
+    });
+    console.log(user);
+    req.user = user;
   } catch (error) {
     res.status(401);
     next(error);
