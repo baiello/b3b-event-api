@@ -44,6 +44,8 @@ router.post('/register', async (req, res, next) => {
 });
 
 router.post('/login', async (req, res, next) => {
+    const erroJson = { errors: [ { message: 'Invalid credentials' } ]};
+
     try {
         const { email, password } = UserLogin.parse(req.body);
 
@@ -53,13 +55,11 @@ router.post('/login', async (req, res, next) => {
             }
         });
 
+        !user && res.status(200).json(erroJson);
+
         const credentialsMatches = await bcrypt.compare(password, user.password);
 
-        if (!credentialsMatches) {
-            return res.status(200).json({ errors: [
-                { message: 'Invalid credentials' }
-            ]});
-        }
+        !credentialsMatches && res.status(200).json(erroJson);
 
         const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
 
